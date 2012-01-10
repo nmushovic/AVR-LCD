@@ -4,7 +4,7 @@
 //do all this work because the Arduino project
 //has an excellent LiquidCrystal library.
 
-//Pins
+//Pins - Could use less memory by using define instead of variables....
 const int rs = 2;		//Register Select
 const int enable = 3;   //Used to signal LCD to read data pins
 const int d0 = 4;		//In 4-bit mode, low nibble, read on 2nd pulse
@@ -18,6 +18,13 @@ const int d7 = 7;		//In 4-bit mode, high nibble, read on 1st pulse
 const int command = 0;  //Commands are Low on RS
 const int dataOp = 1;   //Data operations are High on RS
 
+//Commands
+#define ENTRYMODE 0x04
+#define DECREMENT 0x00
+#define INCREMENT 0x02
+#define SHIFTOFF  0x00
+#define SHIFTON   0x01
+#define SETDDRAM  0x80
 
 void setup()
 {
@@ -62,7 +69,7 @@ void setup()
 	//1-Line Mode 0x00
 	//5x8 Mode 0x00
 	//5x10 Mode 0x04
-	WriteToLcd(0, 0x20 | 0x08); //OR the two commands to get 0x28
+	WriteToLcd(command, 0x20 | 0x08); //OR the two commands to get 0x28
 
 	//Display on/off Control
 	//Display Command 0x08
@@ -72,14 +79,16 @@ void setup()
 	//Cursor OFF 0x00
 	//Blink On 0x01
 	//Blink Off 0x00
-	WriteToLcd(0, 0x08 | 0x04 | 0x02 | 0x01); //0x0F
+	WriteToLcd(command, 0x08 | 0x04 | 0x02 | 0x01); //0x0F
 
 	//Clear Display
-	WriteToLcd(0, 0x01);
+	WriteToLcd(command, 0x01);
 	delayMicroseconds(2000);
 
 	//Entry Mode Set
-	WriteToLcd(0, 0x06);
+	//Could also have these codes as defines 
+	//like so:
+	WriteToLcd(command, ENTRYMODE | INCREMENT | SHIFTOFF);
 
 	//ENDS Initilization
 }
@@ -87,26 +96,25 @@ void setup()
 void loop()
 {
 
-	//Write Hellow World (Should use a loop)	
-	WriteToLcd(1, 'H');
-	WriteToLcd(1, 'E');
-	WriteToLcd(1, 'L');
-	WriteToLcd(1, 'L');
-	WriteToLcd(1, 'O');
-	WriteToLcd(1, ' ');
-	WriteToLcd(1, 'W');
-	WriteToLcd(1, 'O');
-	WriteToLcd(1, 'R');
-	WriteToLcd(1, 'L');
-	WriteToLcd(1, 'D');
+	//Write Hellow World (Should use a loop, this is the long way)	
+	WriteToLcd(dataOp, 'H');
+	WriteToLcd(dataOp, 'E');
+	WriteToLcd(dataOp, 'L');
+	WriteToLcd(dataOp, 'L');
+	WriteToLcd(dataOp, 'O');
+	WriteToLcd(dataOp, ' ');
+	WriteToLcd(dataOp, 'W');
+	WriteToLcd(dataOp, 'O');
+	WriteToLcd(dataOp, 'R');
+	WriteToLcd(dataOp, 'L');
+	WriteToLcd(dataOp, 'D');
 
 	//Move to Second line
-	//Move to DDRAM command 0x80 | Second Line 
-	//fist Column DDRAM Register 0x40
-	WriteToLcd(0, 0xC0);
+	//fist Column/second Line DDRAM Register 0x40
+	WriteToLcd(0, SETDDRAM | 0x40);
 
-	//
-	printString("I'm and AVR!");
+	//Print a string to the LCD
+	printString("I'm an AVR!");
 
 	//Loop forever and do nothing
 	while(1) {};
@@ -115,19 +123,21 @@ void loop()
 
 void printString(String value)
 {
+	//Each character in the string is an 8-bit/1byte
+	//ASCII code, which compiler will translate for us
 	for(int x = 0; x < value.length(); x++)
 	{
-		WriteToLcd(1, value[x]);
+		WriteToLcd(dataOp, value[x]);
 	}
 }
 
 void set8BitMode()
 {
 
-	//Set 4-bit mode (0x20)
-	//Set the High Nibble
+	//Set low for Command
 	digitalWrite(rs, LOW); 
 
+	//Set 8 Bit Mode
 	digitalWrite(d7, LOW);
 	digitalWrite(d6, LOW);
 	digitalWrite(d5, HIGH);
@@ -139,10 +149,10 @@ void set8BitMode()
 void set4BitMode()
 {
 
-	//Set 4-bit mode (0x20)
-	//Set the High Nibble
+	//Set low for Command
 	digitalWrite(rs, LOW); 
 
+	//Set 4-bit mode
 	digitalWrite(d7, LOW);
 	digitalWrite(d6, LOW);
 	digitalWrite(d5, HIGH);
