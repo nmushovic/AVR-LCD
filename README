@@ -4,5 +4,8 @@ Just a demonstration of how to interface an AVR with an
 LCD. Mainly for documentation of my projects, for my own 
 reference.
 
+LCD Display.fz - Fritzing Schematic
+LCD_Display.pde - Using Wiring.h, but not LCDCrystal.h
+LCD_DisplayUsingLibrary - Using Wring.h and LCDCrystal.h
 
 All code on this site is just for informational purposes. Use at your own risk.
